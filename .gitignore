@@ -1,0 +1,14 @@
+.env
+venv/
+chroma_db/
+__pycache__/
+.DS_Store
+*.pyc
+
+# 동적 생성되는 검색 커맨드 (사용자별로 다름)
+.claude/skills/search-*/
+
+# 로컬 설정
+.claude/settings.local.json
+/tmp/butler-*.log
+/tmp/butler-*.pid
