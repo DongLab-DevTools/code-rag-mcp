@@ -2,7 +2,7 @@
 indexer.py — 청크를 임베딩하고 ChromaDB에 저장한다.
 
 사용법:
-    python indexer.py --name tving /path/to/tving-project
+    python indexer.py --name myapp /path/to/myapp-project
     python indexer.py --name myapp /path/to/myapp-project
     python indexer.py --list                                # 인덱싱된 프로젝트 목록
 
@@ -15,10 +15,13 @@ import os
 sys.stdout.reconfigure(line_buffering=True)
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import gc
+import json
 import time
 import hashlib
 import argparse
 import torch
+
+PROGRESS_FILE = "/tmp/butler_indexing_progress.json"
 from sentence_transformers import SentenceTransformer
 from analysis.chunker import chunk_project
 import chromadb
@@ -36,6 +39,12 @@ DB_BATCH_SIZE = 64
 
 def get_collection_name(project_name: str) -> str:
     return f"{COLLECTION_PREFIX}{project_name}"
+
+
+def write_progress(data: dict):
+    """진행률을 JSON 파일에 기록한다. Claude Code에서 폴링용."""
+    with open(PROGRESS_FILE, "w") as f:
+        json.dump(data, f, ensure_ascii=False)
 
 
 # ─────────────────────────────────────────────
@@ -106,6 +115,7 @@ def load_model():
 def index_project(project_name: str, project_path: str):
     """프로젝트를 청킹하고 임베딩해서 ChromaDB에 저장한다."""
 
+    write_progress({"status": "loading_model", "message": "임베딩 모델 로드 중..."})
     embed_model = load_model()
     collection_name = get_collection_name(project_name)
 
@@ -117,6 +127,7 @@ def index_project(project_name: str, project_path: str):
         ).tolist()
 
     # 1. 청킹
+    write_progress({"status": "chunking", "message": "프로젝트 청킹 중..."})
     print(f"[1/3] 프로젝트 청킹 중: {project_path}")
     print(f"       프로젝트 이름: {project_name}")
     chunks = chunk_project(project_path)
@@ -143,6 +154,7 @@ def index_project(project_name: str, project_path: str):
 
     # 3. 하나씩 임베딩 생성 + 묶어서 DB 저장
     total = len(chunks)
+    write_progress({"status": "embedding", "progress": 0, "total": total, "pct": 0, "speed": 0, "eta": ""})
     print(f"[3/3] 임베딩 생성 중 (디바이스: {device}, 청크 1개씩 처리)")
 
     start_time = time.time()
@@ -186,9 +198,14 @@ def index_project(project_name: str, project_path: str):
             eta = (total - progress) / speed
             eta_min = int(eta // 60)
             eta_sec = int(eta % 60)
+            eta_str = f"~{eta_min}분 {eta_sec}초"
+            write_progress({
+                "status": "embedding", "progress": progress, "total": total,
+                "pct": pct, "speed": round(speed, 1), "eta": eta_str,
+            })
             print(
                 f"       → {progress}/{total} ({pct}%) | "
-                f"{speed:.1f} 청크/초 | 남은 시간: ~{eta_min}분 {eta_sec}초"
+                f"{speed:.1f} 청크/초 | 남은 시간: {eta_str}"
             )
 
     if buf_ids:
@@ -201,6 +218,10 @@ def index_project(project_name: str, project_path: str):
     elapsed_min = int(elapsed_total // 60)
     elapsed_sec = int(elapsed_total % 60)
 
+    write_progress({
+        "status": "done", "total": total,
+        "elapsed": f"{elapsed_min}분 {elapsed_sec}초",
+    })
     print(f"\n✅ 인덱싱 완료! [{project_name}] {total}개 청크 저장됨")
     print(f"   소요 시간: {elapsed_min}분 {elapsed_sec}초")
     print(f"   컬렉션: {collection_name}")
@@ -212,7 +233,7 @@ def index_project(project_name: str, project_path: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="프로젝트를 인덱싱한다.")
-    parser.add_argument("--name", help="프로젝트 이름 (예: tving, myapp)")
+    parser.add_argument("--name", help="프로젝트 이름 (예: myapp, shopping)")
     parser.add_argument("--list", action="store_true", help="인덱싱된 프로젝트 목록")
     parser.add_argument("path", nargs="?", help="프로젝트 경로")
 

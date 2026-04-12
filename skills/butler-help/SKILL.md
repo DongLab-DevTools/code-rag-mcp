@@ -16,7 +16,7 @@ description: 안드로이드 집사(Android Butler) MCP 사용법을 안내합�
 
 | 커맨드 | 설명 | 예시 |
 |--------|------|------|
-| `/search-{프로젝트}` | 특정 프로젝트에서 코드 검색 | `/search-tving 로그인 API` |
+| `/search-{프로젝트}` | 특정 프로젝트에서 코드 검색 | `/search-myapp 로그인 API` |
 | `/projects` | 인덱싱된 프로젝트 목록 확인 | `/projects` |
 | `/project-add` | 새 프로젝트 인덱싱 + 커맨드 자동 생성 | `/project-add` |
 | `/butler-help` | 이 도움말 표시 | `/butler-help` |
@@ -24,16 +24,16 @@ description: 안드로이드 집사(Android Butler) MCP 사용법을 안내합�
 ### 검색 예시
 
 ```
-/search-tving 유저 프로필 수정하는 API
-/search-tving 결제 로직 흐름
-/search-tving Room DB 엔티티 목록
-/search-tving Retrofit 인터셉터에서 토큰 갱신
-/search-tving 네트워크 에러 처리
+/search-myapp 유저 프로필 수정하는 API
+/search-myapp 결제 로직 흐름
+/search-myapp Room DB 엔티티 목록
+/search-myapp Retrofit 인터셉터에서 토큰 갱신
+/search-myapp 네트워크 에러 처리
 ```
 
 커맨드 없이 질문해도 됩니다:
 ```
-"tving에서 로그인 로직 어떻게 돼?"
+"myapp에서 로그인 로직 어떻게 돼?"
 "전체 프로젝트에서 Repository 패턴 찾아줘"
 ```
 

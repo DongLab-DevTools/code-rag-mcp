@@ -6,7 +6,7 @@ search.py — 벡터DB에서 질문과 관련된 코드를 검색한다.
 사용법:
     from search import search_code
     results = search_code("유저 정보 가져오는 코드")              # 전체 검색
-    results = search_code("유저 정보", project="tving")          # 특정 프로젝트만
+    results = search_code("유저 정보", project="myapp")          # 특정 프로젝트만
 """
 
 import os

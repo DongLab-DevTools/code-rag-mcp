@@ -145,7 +145,7 @@ SLACK_APP_TOKEN=xapp-...
 슬랙에서:
 ```
 @code-rag-mcp 로그인 로직이 어떻게 돼?
-@code-rag-mcp tving 유저 정보 조회하는 코드
+@code-rag-mcp myapp 유저 정보 조회하는 코드
 ```
 
 ## 기술 스택

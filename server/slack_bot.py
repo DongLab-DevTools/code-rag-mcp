@@ -493,7 +493,7 @@ def _build_help_blocks() -> list[dict]:
         {
             "type": "rich_text",
             "elements": [{"type": "rich_text_preformatted", "elements": [
-                {"type": "text", "text": "@android-butler tving 유저 정보 조회\n@android-butler wepli-android 릴레이리스트 화면"}
+                {"type": "text", "text": "@android-butler myapp 유저 정보 조회\n@android-butler myapp 릴레이리스트 화면"}
             ]}]
         },
         {"type": "divider"},
@@ -541,7 +541,7 @@ def handle_mention(event, say):
 
     if not question:
         say(
-            blocks=text_to_blocks("질문을 함께 입력해주세요!\n예: `@android-butler tving 로그인 로직이 어떻게 돼?`"),
+            blocks=text_to_blocks("질문을 함께 입력해주세요!\n예: `@android-butler myapp 로그인 로직이 어떻게 돼?`"),
             text="질문을 함께 입력해주세요!",
             thread_ts=thread_ts,
         )
