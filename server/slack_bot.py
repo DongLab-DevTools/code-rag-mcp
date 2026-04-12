@@ -216,6 +216,33 @@ def md_to_blocks(text: str) -> list[dict]:
                 items.append({"text": text, "level": level})
         return items
 
+    def _parse_rich_text_elements(text: str) -> list[dict]:
+        """텍스트에서 *bold*, `code` 등을 파싱해서 rich_text elements로 변환한다."""
+        elements = []
+        # *bold*와 `code`를 파싱
+        pattern = r"(\*[^*]+\*|`[^`]+`)"
+        parts = re.split(pattern, text)
+
+        for part in parts:
+            if not part:
+                continue
+            if part.startswith("*") and part.endswith("*") and len(part) > 2:
+                elements.append({
+                    "type": "text",
+                    "text": part[1:-1],
+                    "style": {"bold": True},
+                })
+            elif part.startswith("`") and part.endswith("`") and len(part) > 2:
+                elements.append({
+                    "type": "text",
+                    "text": part[1:-1],
+                    "style": {"code": True},
+                })
+            else:
+                elements.append({"type": "text", "text": part})
+
+        return elements if elements else [{"type": "text", "text": text}]
+
     def _build_rich_text_list(items: list[dict]) -> dict:
         """항목 리스트를 rich_text 블록으로 변환한다.
         같은 indent 레벨끼리 그룹핑해서 sibling rich_text_list로 배치."""
@@ -237,7 +264,7 @@ def md_to_blocks(text: str) -> list[dict]:
         for item in items:
             section = {
                 "type": "rich_text_section",
-                "elements": [{"type": "text", "text": item["text"]}],
+                "elements": _parse_rich_text_elements(item["text"]),
             }
 
             if item["level"] != current_level:
