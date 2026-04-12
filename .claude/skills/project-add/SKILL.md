@@ -23,24 +23,15 @@ $ARGUMENTS 가 있으면 거기서 이름과 경로를 파싱하세요.
 
 ## 2단계: 인덱싱 실행
 
-시간이 오래 걸릴 수 있으니 사용자에게 미리 안내하세요.
+아래 명령어를 사용자에게 보여주고, `!` 프리픽스로 직접 실행하도록 안내하세요.
+(Claude Code에서 백그라운드로 실행하면 진행 로그가 보이지 않으므로, 반드시 `!`로 실행해야 합니다)
 
-1. 진행률 파일 초기화:
 ```
-rm -f /tmp/butler_indexing_progress.json
-```
-
-2. **백그라운드**로 인덱싱 실행 (run_in_background=true):
-```
-cd {프로젝트루트} && source venv/bin/activate && python analysis/indexer.py --name {프로젝트이름} {프로젝트경로}
+! {프로젝트루트}/index.sh --name {프로젝트이름} {프로젝트경로}
 ```
 
-3. 진행률 파일(`/tmp/butler_indexing_progress.json`)을 **30초 간격**으로 Read 도구로 읽어서 사용자에게 보여주세요:
-   - `status`가 `"embedding"`이면: `{progress}/{total} ({pct}%) | {speed} 청크/초 | 남은 시간: {eta}` 형태로 출력
-   - `status`가 `"done"`이면: 완료 메시지 출력 후 다음 단계로 진행
-   - 파일이 없거나 읽기 실패하면: "아직 준비 중..." 출력 후 계속 폴링
-
-   폴링할 때는 `Bash`의 `sleep 30`으로 대기한 뒤 Read로 파일을 읽는 패턴을 사용하세요.
+시간이 오래 걸릴 수 있으니 미리 안내하세요.
+완료되면 알려달라고 요청하세요.
 
 ## 3단계: 검색 커맨드 자동 생성
 
