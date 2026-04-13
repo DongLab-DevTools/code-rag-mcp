@@ -11,6 +11,12 @@
 DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$DIR"
 
+# 런타임 데이터 디렉토리 (venv, chroma_db 등)
+# 플러그인 모드에서는 $CLAUDE_PLUGIN_DATA (업데이트에도 유지되는 영구 저장소)
+# standalone 모드에서는 $DIR (기존 동작)
+DATA_DIR="${CLAUDE_PLUGIN_DATA:-$DIR}"
+mkdir -p "$DATA_DIR"
+
 # ─────────────────────────────────────────────
 # Python 설치 확인 및 자동 설치
 # ─────────────────────────────────────────────
@@ -50,9 +56,9 @@ echo "Python: $($PYTHON_CMD --version)"
 # ─────────────────────────────────────────────
 # venv 생성
 # ─────────────────────────────────────────────
-if [ ! -d "$DIR/venv" ]; then
+if [ ! -d "$DATA_DIR/venv" ]; then
     echo "가상환경을 생성합니다..."
-    "$PYTHON_CMD" -m venv "$DIR/venv"
+    "$PYTHON_CMD" -m venv "$DATA_DIR/venv"
     if [ $? -ne 0 ]; then
         echo "가상환경 생성 실패"
         exit 1
@@ -65,18 +71,18 @@ fi
 if [ -f "$DIR/requirements.txt" ]; then
     REQ_HASH=$(md5 -q "$DIR/requirements.txt" 2>/dev/null || md5sum "$DIR/requirements.txt" | cut -d' ' -f1)
     INSTALLED_HASH=""
-    if [ -f "$DIR/venv/.req_hash" ]; then
-        INSTALLED_HASH=$(cat "$DIR/venv/.req_hash")
+    if [ -f "$DATA_DIR/venv/.req_hash" ]; then
+        INSTALLED_HASH=$(cat "$DATA_DIR/venv/.req_hash")
     fi
 
     if [ "$REQ_HASH" != "$INSTALLED_HASH" ]; then
         echo "패키지를 설치합니다..."
-        "$DIR/venv/bin/pip" install -r "$DIR/requirements.txt"
+        "$DATA_DIR/venv/bin/pip" install -r "$DIR/requirements.txt"
         if [ $? -ne 0 ]; then
             echo "패키지 설치 실패"
             exit 1
         fi
-        echo "$REQ_HASH" > "$DIR/venv/.req_hash"
+        echo "$REQ_HASH" > "$DATA_DIR/venv/.req_hash"
         echo "패키지 설치 완료!"
     fi
 fi
@@ -86,10 +92,10 @@ fi
 # - 최초 1회: HuggingFace에서 ~3GB 다운로드 → ~/.cache/huggingface/
 # - 이후: 캐시 hit으로 즉시 종료 (모델을 메모리에 보관하진 않음)
 # ─────────────────────────────────────────────
-MODEL_MARKER="$DIR/venv/.model_warmed"
+MODEL_MARKER="$DATA_DIR/venv/.model_warmed"
 if [ ! -f "$MODEL_MARKER" ]; then
     echo "임베딩 모델 가중치를 다운로드합니다 (최초 1회, 수 분 소요)..."
-    "$DIR/venv/bin/python" - <<'PY'
+    "$DATA_DIR/venv/bin/python" - <<'PY'
 import sys
 try:
     from sentence_transformers import SentenceTransformer

@@ -7,13 +7,18 @@
 DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$DIR"
 
+# 런타임 데이터 디렉토리 (venv, .env 등)
+DATA_DIR="${CLAUDE_PLUGIN_DATA:-$DIR}"
+
 # ─────────────────────────────────────────────
 # 초기 셋업 (Python/venv/requirements/모델)
 # ─────────────────────────────────────────────
 "$DIR/init.sh" || exit 1
 
-# .env 파일 로드
-if [ -f "$DIR/.env" ]; then
+# .env 파일 로드 (DATA_DIR 우선, 없으면 DIR에서)
+if [ -f "$DATA_DIR/.env" ]; then
+    export $(grep -v '^#' "$DATA_DIR/.env" | xargs)
+elif [ -f "$DIR/.env" ]; then
     export $(grep -v '^#' "$DIR/.env" | xargs)
 fi
 
@@ -38,7 +43,7 @@ if [ -z "$SLACK_BOT_TOKEN" ] || [ -z "$SLACK_APP_TOKEN" ]; then
     HAS_SLACK=false
 fi
 
-VENV_PYTHON="$DIR/venv/bin/python"
+VENV_PYTHON="$DATA_DIR/venv/bin/python"
 export PYTHONUNBUFFERED=1
 
 # ─────────────────────────────────────────────

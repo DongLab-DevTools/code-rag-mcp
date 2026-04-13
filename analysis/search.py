@@ -20,7 +20,10 @@ import chromadb
 # ─────────────────────────────────────────────
 
 EMBEDDING_MODEL_NAME = "jinaai/jina-code-embeddings-1.5b"
-CHROMA_DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "chroma_db")
+CHROMA_DB_PATH = os.path.join(
+    os.environ.get("CLAUDE_PLUGIN_DATA") or os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "chroma_db",
+)
 COLLECTION_PREFIX = "project_"
 TOP_K = 10
 
