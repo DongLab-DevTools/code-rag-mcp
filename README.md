@@ -105,7 +105,7 @@ pip install tree-sitter-typescript
 ### 수동 설치
 
 ```bash
-git clone https://github.com/your-username/code-rag-mcp.git
+git clone https://github.com/DongLab-DevTools/code-rag-mcp.git
 cd code-rag-mcp
 ./init.sh        # Python/venv/패키지/모델까지 자동 셋업
 ```
