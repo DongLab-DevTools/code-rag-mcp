@@ -2,21 +2,22 @@
 
 ## 사전 준비
 
-- Python 3.10+
+- macOS + Homebrew (없으면 Python 3.10+를 직접 설치)
 - [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) (슬랙 봇 답변 생성에 필요)
 
 ## 1. 설치
 
 ```bash
-git clone <repo-url> android-butler
-cd android-butler
-
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+git clone <repo-url> code-rag-mcp
+cd code-rag-mcp
+./init.sh    # Python/venv/패키지/임베딩 모델까지 자동 셋업
 ```
 
+`init.sh`는 멱등이므로 재실행해도 안전합니다. requirements.txt 변경 시에만 재설치되고, 모델 다운로드도 최초 1회만 수행됩니다.
+
 ## 2. 프로젝트 인덱싱
+
+Claude Code에서 `/project-add`를 실행하면 대화형으로 인덱싱됩니다. 또는 CLI로:
 
 ```bash
 source venv/bin/activate

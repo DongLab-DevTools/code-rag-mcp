@@ -94,13 +94,20 @@ pip install tree-sitter-typescript
 
 ## 설치
 
+### Claude Code 플러그인으로 설치 (권장)
+
+```
+/plugin install code-rag-mcp
+/init            # Python/패키지 설치 + 임베딩 모델 다운로드(~3GB, 최초 1회만)
+/project-add     # 프로젝트 인덱싱
+```
+
+### 수동 설치
+
 ```bash
 git clone https://github.com/your-username/code-rag-mcp.git
 cd code-rag-mcp
-
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+./init.sh        # Python/venv/패키지/모델까지 자동 셋업
 ```
 
 ## 사용법
