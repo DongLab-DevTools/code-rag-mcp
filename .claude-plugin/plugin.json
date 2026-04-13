@@ -1,7 +1,7 @@
 {
   "name": "code-rag-mcp",
   "description": "로컬 임베딩 기반 코드 검색 MCP. 프로젝트를 인덱싱하고 자연어로 코드를 검색합니다. 설치 후 /init을 먼저 실행하세요.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": {
     "name": "Donghyeon Kim"
   }
