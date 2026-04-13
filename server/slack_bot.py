@@ -58,20 +58,41 @@ def get_projects() -> list[str]:
 # 질문에서 프로젝트 자동 감지
 # ─────────────────────────────────────────────
 
-def detect_project(question: str) -> tuple[str, str]:
+def _clean_project_from_question(question: str, proj: str) -> str:
+    """질문에서 프로젝트 이름을 제거하고 정리한다."""
+    cleaned = question.replace(proj, "").strip()
+    for suffix in ["에서 ", "에서", "의 ", "의", "에 ", "에"]:
+        if cleaned.startswith(suffix):
+            cleaned = cleaned[len(suffix):].strip()
+            break
+    return cleaned or question
+
+
+def detect_project(question: str) -> tuple[str | list[str], str]:
+    """질문에서 프로젝트를 감지한다.
+    정확히 매칭되면 str, 여러 프로젝트가 부분 매칭되면 list[str]을 반환한다."""
     projects = get_projects()
     if not projects:
         return "", question
 
     lower_q = question.lower()
+
+    # 1) 정확한 매칭: 프로젝트 이름이 질문에 포함
     for proj in sorted(projects, key=len, reverse=True):
         if proj.lower() in lower_q:
-            cleaned = question.replace(proj, "").strip()
-            for suffix in ["에서 ", "에서", "의 ", "의", "에 ", "에"]:
-                if cleaned.startswith(suffix):
-                    cleaned = cleaned[len(suffix):].strip()
-                    break
-            return proj, cleaned or question
+            cleaned = _clean_project_from_question(question, proj)
+            return proj, cleaned
+
+    # 2) 부분 매칭: 질문의 단어가 여러 프로젝트 이름의 공통 접두사인 경우
+    words = lower_q.split()
+    for word in words:
+        matched = [p for p in projects if p.lower().startswith(word)]
+        if len(matched) == 1:
+            cleaned = _clean_project_from_question(question, word)
+            return matched[0], cleaned
+        elif len(matched) > 1:
+            cleaned = _clean_project_from_question(question, word)
+            return matched, cleaned
 
     return "", question
 
@@ -436,8 +457,8 @@ def text_to_blocks(text: str) -> list[dict]:
 # 4) 자기소개 & 도움말
 # ─────────────────────────────────────────────
 
-INTRO_KEYWORDS = {"자기소개", "소개", "누구", "뭐하는", "뭐야", "정체"}
-HELP_KEYWORDS = {"도움말", "도움", "사용법", "사용방법", "어떻게 사용", "help", "명령어"}
+INTRO_KEYWORDS = {"자기소개", "소개해", "너 누구", "뭐하는 봇", "넌 뭐야", "정체가"}
+HELP_KEYWORDS = {"도움말", "사용법", "사용방법", "어떻게 사용", "help", "명령어"}
 
 
 def _build_intro_blocks() -> list[dict]:
@@ -559,8 +580,34 @@ def handle_mention(event, say):
 
     # 프로젝트 자동 감지
     project, cleaned_question = detect_project(question)
-    scope = f"[{project}]" if project else "[전체]"
 
+    # 여러 프로젝트가 매칭된 경우 (예: "tving" → tving-android, tving-ios)
+    if isinstance(project, list):
+        scope = "[" + ", ".join(project) + "]"
+        logger.info(f"질문: {question} → 프로젝트: {scope}, 검색어: {cleaned_question}")
+        say(text=f"🔍 {scope} 코드베이스에서 관련 코드를 찾고 있습니다...", thread_ts=thread_ts)
+
+        # 각 프로젝트에서 검색 후 결과 병합
+        all_results = []
+        total = 0
+        for proj in project:
+            data = search_from_server(cleaned_question, project=proj)
+            if "error" not in data and data.get("total", 0) > 0:
+                all_results.append(data["formatted"])
+                total += data["total"]
+
+        if total == 0:
+            say(text="관련 코드를 찾지 못했습니다. 질문을 다르게 해보세요.", thread_ts=thread_ts)
+            return
+
+        merged_formatted = "\n\n".join(all_results)
+        answer = generate_answer(question, merged_formatted)
+        blocks = md_to_blocks(answer)
+        say(blocks=blocks, text=answer[:3000], thread_ts=thread_ts)
+        logger.info(f"답변 전송 완료 (블록 {len(blocks)}개)")
+        return
+
+    scope = f"[{project}]" if project else "[전체]"
     logger.info(f"질문: {question} → 프로젝트: {scope}, 검색어: {cleaned_question}")
 
     say(text=f"🔍 {scope} 코드베이스에서 관련 코드를 찾고 있습니다...", thread_ts=thread_ts)
