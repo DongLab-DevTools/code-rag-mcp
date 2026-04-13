@@ -1,4 +1,4 @@
-# 안드로이드 집사 (Android Butler) 셋업 가이드
+# code-rag-mcp 셋업 가이드
 
 ## 사전 준비
 
@@ -21,7 +21,7 @@ Claude Code에서 `/project-add`를 실행하면 대화형으로 인덱싱됩니
 
 ```bash
 source venv/bin/activate
-python analysis/indexer.py --name 프로젝트이름 /path/to/android-project
+python analysis/indexer.py --name 프로젝트이름 /path/to/project
 ```
 
 인덱싱된 프로젝트 확인:
@@ -34,7 +34,7 @@ python analysis/indexer.py --list
 Claude Code에서 아래 명령어로 MCP 서버를 등록합니다:
 
 ```bash
-claude mcp add android-butler -- $(pwd)/venv/bin/python $(pwd)/server/mcp_server.py
+claude mcp add code-rag-mcp -- $(pwd)/venv/bin/python $(pwd)/server/mcp_server.py
 ```
 
 ## 4. 슬랙 봇 연동 (선택)
@@ -54,7 +54,7 @@ claude mcp add android-butler -- $(pwd)/venv/bin/python $(pwd)/server/mcp_server
 ```
 SLACK_BOT_TOKEN=xoxb-your-bot-token
 SLACK_APP_TOKEN=xapp-your-app-token
-BUTLER_API_URL=http://localhost:8000
+CODE_RAG_API_URL=http://localhost:8000
 ```
 
 ### 4-3. 실행
@@ -72,13 +72,13 @@ BUTLER_API_URL=http://localhost:8000
 
 ### 4-4. 슬랙에서 테스트
 
-1. 채널에 봇 초대: `/invite @android-butler`
-2. 멘션: `@android-butler 로그인 로직이 어떻게 돼?`
+1. 채널에 봇 초대: `/invite @code-rag-mcp`
+2. 멘션: `@code-rag-mcp 로그인 로직이 어떻게 돼?`
 
 ## 구조
 
 ```
-android-butler/
+code-rag-mcp/
 ├── analysis/            # 코드 분석
 │   ├── chunker.py       # AST 기반 코드 청킹
 │   ├── indexer.py       # 임베딩 생성 + 벡터DB 저장

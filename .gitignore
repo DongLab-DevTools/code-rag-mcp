@@ -10,5 +10,5 @@ __pycache__/
 
 # 로컬 설정
 .claude/settings.local.json
-/tmp/butler-*.log
-/tmp/butler-*.pid
+/tmp/code-rag-*.log
+/tmp/code-rag-*.pid

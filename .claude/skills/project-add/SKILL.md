@@ -57,7 +57,7 @@ description: {프로젝트이름} 프로젝트 코드베이스에서 관련 코�
 
 {프로젝트이름} 프로젝트에서 다음 내용을 검색해주세요: $ARGUMENTS
 
-mcp__android-butler__search_android_code 도구를 사용하되, project 파라미터에 "{프로젝트이름}"을 지정하세요.
+mcp__code-rag-mcp__search_code 도구를 사용하되, project 파라미터에 "{프로젝트이름}"을 지정하세요.
 검색 결과를 바탕으로 질문에 대해 정리해서 답변해주세요.
 ```
 

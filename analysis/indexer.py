@@ -21,7 +21,7 @@ import hashlib
 import argparse
 import torch
 
-PROGRESS_FILE = "/tmp/butler_indexing_progress.json"
+PROGRESS_FILE = "/tmp/code-rag-indexing-progress.json"
 from sentence_transformers import SentenceTransformer
 from analysis.chunker import chunk_project
 import chromadb

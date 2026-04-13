@@ -1,10 +1,10 @@
 """
-slack_bot.py — 안드로이드 집사 슬랙 봇
+slack_bot.py — code-rag-mcp 슬랙 봇
 
 사용법:
     export SLACK_BOT_TOKEN="xoxb-..."
     export SLACK_APP_TOKEN="xapp-..."
-    export BUTLER_API_URL="http://localhost:8000"
+    export CODE_RAG_API_URL="http://localhost:8000"
     python slack_bot.py
 """
 
@@ -23,7 +23,7 @@ from slack_bolt.adapter.socket_mode import SocketModeHandler
 
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
 SLACK_APP_TOKEN = os.environ["SLACK_APP_TOKEN"]
-BUTLER_API_URL = os.environ.get("BUTLER_API_URL", "http://localhost:8000")
+CODE_RAG_API_URL = os.environ.get("CODE_RAG_API_URL", "http://localhost:8000")
 CLAUDE_CLI = os.environ.get("CLAUDE_CLI_PATH", "claude")
 MAX_BLOCKS = 50
 
@@ -46,7 +46,7 @@ def get_projects() -> list[str]:
     if _cached_projects is not None:
         return _cached_projects
     try:
-        resp = requests.get(f"{BUTLER_API_URL}/projects", timeout=5)
+        resp = requests.get(f"{CODE_RAG_API_URL}/projects", timeout=5)
         resp.raise_for_status()
         _cached_projects = resp.json().get("projects", [])
     except Exception:
@@ -104,14 +104,14 @@ def detect_project(question: str) -> tuple[str | list[str], str]:
 def search_from_server(question: str, project: str = "", top_k: int = 10) -> dict:
     try:
         resp = requests.get(
-            f"{BUTLER_API_URL}/search",
+            f"{CODE_RAG_API_URL}/search",
             params={"q": question, "top_k": top_k, "project": project},
             timeout=30,
         )
         resp.raise_for_status()
         return resp.json()
     except requests.ConnectionError:
-        return {"error": f"검색 서버({BUTLER_API_URL})에 연결할 수 없습니다."}
+        return {"error": f"검색 서버({CODE_RAG_API_URL})에 연결할 수 없습니다."}
     except requests.Timeout:
         return {"error": "검색 서버 응답 시간 초과"}
     except Exception as e:
@@ -465,11 +465,11 @@ def _build_intro_blocks() -> list[dict]:
     return [
         {
             "type": "header",
-            "text": {"type": "plain_text", "text": "🤖 안드로이드 집사 (Android Butler)"}
+            "text": {"type": "plain_text", "text": "🤖 code-rag-mcp"}
         },
         {
             "type": "section",
-            "text": {"type": "mrkdwn", "text": "팀의 안드로이드 코드베이스를 로컬 AI로 분석해서, 자연어 질문에 관련 코드를 찾아드리는 봇이에요."}
+            "text": {"type": "mrkdwn", "text": "팀의 코드베이스를 로컬 AI로 분석해서, 자연어 질문에 관련 코드를 찾아드리는 봇이에요."}
         },
         {
             "type": "section",
@@ -494,7 +494,7 @@ def _build_help_blocks() -> list[dict]:
     return [
         {
             "type": "header",
-            "text": {"type": "plain_text", "text": "📖 안드로이드 집사 사용법"}
+            "text": {"type": "plain_text", "text": "📖 code-rag-mcp 사용법"}
         },
         {
             "type": "section",
@@ -503,7 +503,7 @@ def _build_help_blocks() -> list[dict]:
         {
             "type": "rich_text",
             "elements": [{"type": "rich_text_preformatted", "elements": [
-                {"type": "text", "text": "@android-butler 로그인 로직이 어떻게 돼?\n@android-butler Retrofit 인터셉터에서 토큰 갱신하는 부분"}
+                {"type": "text", "text": "@code-rag-mcp 로그인 로직이 어떻게 돼?\n@code-rag-mcp Retrofit 인터셉터에서 토큰 갱신하는 부분"}
             ]}]
         },
         {"type": "divider"},
@@ -514,7 +514,7 @@ def _build_help_blocks() -> list[dict]:
         {
             "type": "rich_text",
             "elements": [{"type": "rich_text_preformatted", "elements": [
-                {"type": "text", "text": "@android-butler myapp 유저 정보 조회\n@android-butler myapp 릴레이리스트 화면"}
+                {"type": "text", "text": "@code-rag-mcp myapp 유저 정보 조회\n@code-rag-mcp myapp 릴레이리스트 화면"}
             ]}]
         },
         {"type": "divider"},
@@ -530,7 +530,7 @@ def _build_help_blocks() -> list[dict]:
         {
             "type": "rich_text",
             "elements": [{"type": "rich_text_preformatted", "elements": [
-                {"type": "text", "text": "cd ~/Documents/ai-projects/android-butler\nsource venv/bin/activate\npython analysis/indexer.py --name 프로젝트이름 /프로젝트/경로"}
+                {"type": "text", "text": "cd ~/Documents/ai-projects/code-rag-mcp\nsource venv/bin/activate\npython analysis/indexer.py --name 프로젝트이름 /프로젝트/경로"}
             ]}]
         },
         {
@@ -562,7 +562,7 @@ def handle_mention(event, say):
 
     if not question:
         say(
-            blocks=text_to_blocks("질문을 함께 입력해주세요!\n예: `@android-butler myapp 로그인 로직이 어떻게 돼?`"),
+            blocks=text_to_blocks("질문을 함께 입력해주세요!\n예: `@code-rag-mcp myapp 로그인 로직이 어떻게 돼?`"),
             text="질문을 함께 입력해주세요!",
             thread_ts=thread_ts,
         )
@@ -570,12 +570,12 @@ def handle_mention(event, say):
 
     # 자기소개
     if _match_keywords(question, INTRO_KEYWORDS):
-        say(blocks=_build_intro_blocks(), text="안드로이드 집사 소개", thread_ts=thread_ts)
+        say(blocks=_build_intro_blocks(), text="code-rag-mcp 소개", thread_ts=thread_ts)
         return
 
     # 도움말
     if _match_keywords(question, HELP_KEYWORDS):
-        say(blocks=_build_help_blocks(), text="안드로이드 집사 사용법", thread_ts=thread_ts)
+        say(blocks=_build_help_blocks(), text="code-rag-mcp 사용법", thread_ts=thread_ts)
         return
 
     # 프로젝트 자동 감지
@@ -637,8 +637,8 @@ def handle_mention(event, say):
 
 if __name__ == "__main__":
     projects = get_projects()
-    print("안드로이드 집사 슬랙 봇 시작!")
-    print(f"   검색 서버: {BUTLER_API_URL}")
+    print("code-rag-mcp 슬랙 봇 시작!")
+    print(f"   검색 서버: {CODE_RAG_API_URL}")
     print(f"   인덱싱된 프로젝트: {', '.join(projects) if projects else '(서버 미연결)'}")
     print(f"   Claude CLI: {CLAUDE_CLI}")
     print(f"   종료: Ctrl+C\n")

@@ -1,5 +1,5 @@
 #!/bin/bash
-# 안드로이드 집사 로컬 서버 시작
+# code-rag-mcp 로컬 서버 시작
 # 사용법:
 #   ./start.sh        백그라운드 실행
 #   ./start.sh --log  포그라운드 실행 (로그 실시간 출력, Ctrl+C로 종료)
@@ -52,7 +52,7 @@ if [ "$LOG_MODE" = true ]; then
         kill $SLACK_PID 2>/dev/null
         wait $API_PID 2>/dev/null
         wait $SLACK_PID 2>/dev/null
-        echo "안드로이드 집사 종료 완료!"
+        echo "code-rag-mcp 종료 완료!"
         exit 0
     }
     trap cleanup SIGINT SIGTERM
@@ -78,7 +78,7 @@ if [ "$LOG_MODE" = true ]; then
 
     # 슬랙 봇 시작 (로그 → 터미널)
     if [ "$HAS_SLACK" = true ]; then
-        BUTLER_API_URL="http://localhost:8000" "$VENV_PYTHON" "$DIR/server/slack_bot.py" 2>&1 | sed 's/^/[SLACK] /' &
+        CODE_RAG_API_URL="http://localhost:8000" "$VENV_PYTHON" "$DIR/server/slack_bot.py" 2>&1 | sed 's/^/[SLACK] /' &
         SLACK_PID=$!
         sleep 3
         if kill -0 "$SLACK_PID" 2>/dev/null; then
@@ -89,7 +89,7 @@ if [ "$LOG_MODE" = true ]; then
     fi
 
     echo ""
-    echo "안드로이드 집사 시작 완료! (Ctrl+C로 종료)"
+    echo "code-rag-mcp 시작 완료! (Ctrl+C로 종료)"
     echo "──────────────────────────────────────"
 
     # 포그라운드 유지
@@ -100,9 +100,9 @@ if [ "$LOG_MODE" = true ]; then
 # ─────────────────────────────────────────────
 else
     # API 서버 시작
-    "$VENV_PYTHON" "$DIR/server/api_server.py" > /tmp/butler-api.log 2>&1 &
+    "$VENV_PYTHON" "$DIR/server/api_server.py" > /tmp/code-rag-api.log 2>&1 &
     API_PID=$!
-    echo "$API_PID" > /tmp/butler-api.pid
+    echo "$API_PID" > /tmp/code-rag-api.pid
 
     echo "API 서버 시작 중..."
     for i in $(seq 1 120); do
@@ -114,28 +114,28 @@ else
     done
 
     if ! curl -s http://localhost:8000/health > /dev/null 2>&1; then
-        echo "API 서버 시작 실패. 로그: /tmp/butler-api.log"
+        echo "API 서버 시작 실패. 로그: /tmp/code-rag-api.log"
         exit 1
     fi
 
     # 슬랙 봇 시작
     if [ "$HAS_SLACK" = true ]; then
-        BUTLER_API_URL="http://localhost:8000" "$VENV_PYTHON" "$DIR/server/slack_bot.py" > /tmp/butler-slack.log 2>&1 &
+        CODE_RAG_API_URL="http://localhost:8000" "$VENV_PYTHON" "$DIR/server/slack_bot.py" > /tmp/code-rag-slack.log 2>&1 &
         SLACK_PID=$!
-        echo "$SLACK_PID" > /tmp/butler-slack.pid
+        echo "$SLACK_PID" > /tmp/code-rag-slack.pid
         sleep 3
 
         if kill -0 "$SLACK_PID" 2>/dev/null; then
             echo "슬랙 봇 실행 중 (PID: $SLACK_PID)"
         else
-            echo "슬랙 봇 시작 실패. 로그: /tmp/butler-slack.log"
+            echo "슬랙 봇 시작 실패. 로그: /tmp/code-rag-slack.log"
         fi
     fi
 
     echo ""
-    echo "안드로이드 집사 시작 완료!"
+    echo "code-rag-mcp 시작 완료!"
     echo "  API: http://localhost:8000"
     echo "  API 문서: http://localhost:8000/docs"
-    echo "  로그 보기: tail -f /tmp/butler-api.log /tmp/butler-slack.log"
+    echo "  로그 보기: tail -f /tmp/code-rag-api.log /tmp/code-rag-slack.log"
     echo "  종료: ./stop.sh"
 fi

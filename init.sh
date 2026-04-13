@@ -1,5 +1,5 @@
 #!/bin/bash
-# 안드로이드 집사 초기 셋업
+# code-rag-mcp 초기 셋업
 # - Python 3.10+ 확인 및 자동 설치 (Homebrew)
 # - venv 생성
 # - requirements.txt 설치 (해시 비교로 멱등)

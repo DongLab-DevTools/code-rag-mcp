@@ -14,7 +14,7 @@ from fastapi import FastAPI, Query
 from pydantic import BaseModel
 from analysis.search import search_code, format_results, list_projects
 
-app = FastAPI(title="Android Butler API")
+app = FastAPI(title="code-rag-mcp API")
 
 
 class SearchResponse(BaseModel):

@@ -1,10 +1,10 @@
 """
-server.py — 안드로이드 집사 MCP 서버
+mcp_server.py — code-rag-mcp MCP 서버
 
 여러 프로젝트를 인덱싱해두면 전체 또는 특정 프로젝트만 검색할 수 있다.
 
 사용법:
-    python server.py
+    python mcp_server.py
 """
 
 import sys
@@ -19,7 +19,7 @@ from analysis.search import search_code, format_results, list_projects
 # ─────────────────────────────────────────────
 
 mcp = FastMCP(
-    name="android-butler",
+    name="code-rag-mcp",
     instructions=(
         "코드베이스에서 관련 코드를 검색하는 도구입니다. "
         "코드 구조, API 사용법, 비즈니스 로직 등에 대해 질문하면 "
@@ -31,7 +31,7 @@ mcp = FastMCP(
 
 
 @mcp.tool()
-def search_android_code(query: str, top_k: int = 10, project: str = "") -> str:
+def search_code(query: str, top_k: int = 10, project: str = "") -> str:
     """
     코드베이스에서 질문과 관련된 코드를 검색합니다.
 

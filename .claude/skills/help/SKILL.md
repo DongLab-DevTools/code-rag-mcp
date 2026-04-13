@@ -1,33 +1,32 @@
 ---
-name: butler-help
-description: 안드로이드 집사(Android Butler) MCP 사용법을 안내합니다
+name: help
+description: code-rag-mcp 사용법을 안내합니다
 ---
 
 아래 내용을 그대로 사용자에게 보여주세요.
 
 ---
 
-## 안드로이드 집사 (Android Butler) 사용법
+## code-rag-mcp 사용법
 
-로컬 임베딩 기반 코드 검색 MCP 도구입니다.
+로컬 임베딩 기반 코드 검색 MCP 플러그인입니다.
 인덱싱된 프로젝트의 코드를 자연어로 검색할 수 있습니다.
 
 ### 슬래시 커맨드
 
 | 커맨드 | 설명 | 예시 |
 |--------|------|------|
-| `/search-{프로젝트}` | 특정 프로젝트에서 코드 검색 | `/search-myapp 로그인 API` |
+| `/init` | 초기 셋업 (Python/venv/패키지/모델 다운로드) | `/init` |
+| `/project-add` | 새 프로젝트 인덱싱 + 검색 커맨드 자동 생성 | `/project-add` |
 | `/projects` | 인덱싱된 프로젝트 목록 확인 | `/projects` |
-| `/project-add` | 새 프로젝트 인덱싱 + 커맨드 자동 생성 | `/project-add` |
-| `/butler-help` | 이 도움말 표시 | `/butler-help` |
+| `/search-{프로젝트}` | 특정 프로젝트에서 코드 검색 | `/search-myapp 로그인 API` |
+| `/help` | 이 도움말 표시 | `/help` |
 
 ### 검색 예시
 
 ```
 /search-myapp 유저 프로필 수정하는 API
 /search-myapp 결제 로직 흐름
-/search-myapp Room DB 엔티티 목록
-/search-myapp Retrofit 인터셉터에서 토큰 갱신
 /search-myapp 네트워크 에러 처리
 ```
 
@@ -56,7 +55,7 @@ description: 안드로이드 집사(Android Butler) MCP 사용법을 안내합�
 ### 터미널에서 직접 실행
 
 ```bash
-cd <프로젝트루트>   # android-butler 디렉토리
+cd <플러그인 루트>
 source venv/bin/activate
 
 # 인덱싱
@@ -72,7 +71,7 @@ PYTHONPATH=. python analysis/search.py
 ### 구조
 
 ```
-android-butler/
+code-rag-mcp/
 ├── analysis/            # 코드 분석
 │   ├── chunker.py       # 코드를 의미 단위로 쪼갬 (AST 기반)
 │   ├── indexer.py       # 임베딩 생성 + 벡터DB 저장
