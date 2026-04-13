@@ -97,6 +97,7 @@ pip install tree-sitter-typescript
 ### Claude Code 플러그인으로 설치 (권장)
 
 ```
+/plugin marketplace add DongLab-DevTools/code-rag-mcp
 /plugin install code-rag-mcp
 /init            # Python/패키지 설치 + 임베딩 모델 다운로드(~3GB, 최초 1회만)
 /project-add     # 프로젝트 인덱싱
