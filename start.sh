@@ -7,6 +7,70 @@
 DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$DIR"
 
+# ─────────────────────────────────────────────
+# Python 설치 확인 및 자동 설치
+# ─────────────────────────────────────────────
+PYTHON_CMD=""
+for cmd in python3.12 python3.11 python3.10 python3; do
+    if command -v "$cmd" > /dev/null 2>&1; then
+        ver=$("$cmd" -c "import sys; print(sys.version_info.minor)")
+        if [ "$ver" -ge 10 ] 2>/dev/null; then
+            PYTHON_CMD="$cmd"
+            break
+        fi
+    fi
+done
+
+if [ -z "$PYTHON_CMD" ]; then
+    echo "⚠ Python 3.10 이상이 설치되어 있지 않습니다."
+    if command -v brew > /dev/null 2>&1; then
+        echo "Homebrew를 사용하여 Python 3.12를 설치합니다..."
+        echo "  (시간이 다소 걸릴 수 있습니다)"
+        brew install python@3.12
+        if [ $? -ne 0 ]; then
+            echo "Python 설치 실패"
+            exit 1
+        fi
+        PYTHON_CMD="python3.12"
+        echo "✓ Python 설치 완료!"
+    else
+        echo "Homebrew가 설치되어 있지 않습니다."
+        echo "  먼저 Homebrew를 설치하세요: https://brew.sh"
+        echo "  또는 직접 Python 3.10+를 설치하세요: https://www.python.org/downloads/"
+        exit 1
+    fi
+fi
+
+echo "Python: $($PYTHON_CMD --version)"
+
+# ─────────────────────────────────────────────
+# venv 생성 및 패키지 설치
+# ─────────────────────────────────────────────
+if [ ! -d "$DIR/venv" ]; then
+    echo "가상환경을 생성합니다..."
+    "$PYTHON_CMD" -m venv "$DIR/venv"
+fi
+
+if [ -f "$DIR/requirements.txt" ]; then
+    # requirements.txt가 변경되었으면 재설치
+    REQ_HASH=$(md5 -q "$DIR/requirements.txt" 2>/dev/null || md5sum "$DIR/requirements.txt" | cut -d' ' -f1)
+    INSTALLED_HASH=""
+    if [ -f "$DIR/venv/.req_hash" ]; then
+        INSTALLED_HASH=$(cat "$DIR/venv/.req_hash")
+    fi
+
+    if [ "$REQ_HASH" != "$INSTALLED_HASH" ]; then
+        echo "패키지를 설치합니다..."
+        "$DIR/venv/bin/pip" install -r "$DIR/requirements.txt"
+        if [ $? -ne 0 ]; then
+            echo "패키지 설치 실패"
+            exit 1
+        fi
+        echo "$REQ_HASH" > "$DIR/venv/.req_hash"
+        echo "패키지 설치 완료!"
+    fi
+fi
+
 # .env 파일 로드
 if [ -f "$DIR/.env" ]; then
     export $(grep -v '^#' "$DIR/.env" | xargs)
@@ -33,7 +97,8 @@ if [ -z "$SLACK_BOT_TOKEN" ] || [ -z "$SLACK_APP_TOKEN" ]; then
     HAS_SLACK=false
 fi
 
-source "$DIR/venv/bin/activate"
+VENV_PYTHON="$DIR/venv/bin/python"
+export PYTHONUNBUFFERED=1
 
 # ─────────────────────────────────────────────
 # 포그라운드 모드 (--log)
@@ -52,11 +117,11 @@ if [ "$LOG_MODE" = true ]; then
     trap cleanup SIGINT SIGTERM
 
     # API 서버 시작 (로그 → 터미널)
-    python "$DIR/server/api_server.py" 2>&1 | sed 's/^/[API] /' &
+    "$VENV_PYTHON" "$DIR/server/api_server.py" 2>&1 | sed 's/^/[API] /' &
     API_PID=$!
 
     echo "API 서버 시작 중..."
-    for i in $(seq 1 30); do
+    for i in $(seq 1 120); do
         if curl -s http://localhost:8000/health > /dev/null 2>&1; then
             echo "[API] 서버 준비 완료 (PID: $API_PID)"
             break
@@ -72,7 +137,7 @@ if [ "$LOG_MODE" = true ]; then
 
     # 슬랙 봇 시작 (로그 → 터미널)
     if [ "$HAS_SLACK" = true ]; then
-        BUTLER_API_URL="http://localhost:8000" python "$DIR/server/slack_bot.py" 2>&1 | sed 's/^/[SLACK] /' &
+        BUTLER_API_URL="http://localhost:8000" "$VENV_PYTHON" "$DIR/server/slack_bot.py" 2>&1 | sed 's/^/[SLACK] /' &
         SLACK_PID=$!
         sleep 3
         if kill -0 "$SLACK_PID" 2>/dev/null; then
@@ -94,12 +159,12 @@ if [ "$LOG_MODE" = true ]; then
 # ─────────────────────────────────────────────
 else
     # API 서버 시작
-    python "$DIR/server/api_server.py" > /tmp/butler-api.log 2>&1 &
+    "$VENV_PYTHON" "$DIR/server/api_server.py" > /tmp/butler-api.log 2>&1 &
     API_PID=$!
     echo "$API_PID" > /tmp/butler-api.pid
 
     echo "API 서버 시작 중..."
-    for i in $(seq 1 30); do
+    for i in $(seq 1 120); do
         if curl -s http://localhost:8000/health > /dev/null 2>&1; then
             echo "API 서버 실행 중 (PID: $API_PID)"
             break
@@ -114,7 +179,7 @@ else
 
     # 슬랙 봇 시작
     if [ "$HAS_SLACK" = true ]; then
-        BUTLER_API_URL="http://localhost:8000" python "$DIR/server/slack_bot.py" > /tmp/butler-slack.log 2>&1 &
+        BUTLER_API_URL="http://localhost:8000" "$VENV_PYTHON" "$DIR/server/slack_bot.py" > /tmp/butler-slack.log 2>&1 &
         SLACK_PID=$!
         echo "$SLACK_PID" > /tmp/butler-slack.pid
         sleep 3
