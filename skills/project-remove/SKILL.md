@@ -11,10 +11,44 @@ description: 인덱싱된 프로젝트를 삭제합니다
 이 파일은 `{플러그인루트}/skills/project-remove/SKILL.md` 에 있으므로,
 플러그인 루트는 이 파일에서 2단계 상위 디렉토리입니다.
 
-## 1단계: 프로젝트 이름 확인
+## 1단계: 프로젝트 목록 표시 및 선택
 
-인자(<args>)가 있으면 거기서 프로젝트 이름을 파싱하세요.
-없으면 사용자에게 삭제할 프로젝트 이름을 물어보세요.
+인자(<args>)가 있으면 거기서 프로젝트 이름을 파싱하고 2단계로 넘어가세요.
+
+인자가 없으면 아래 명령어를 실행해서 등록된 프로젝트 목록을 가져오세요:
+
+```
+{플러그인루트}/venv/bin/python -c "
+import chromadb, os
+db_path = os.path.join(os.environ.get('CLAUDE_PLUGIN_DATA') or '{플러그인루트}', 'chroma_db')
+if not os.path.exists(db_path):
+    print('EMPTY')
+else:
+    client = chromadb.PersistentClient(path=db_path)
+    cols = [c for c in client.list_collections() if c.name.startswith('project_')]
+    if not cols:
+        print('EMPTY')
+    else:
+        for c in cols:
+            name = c.name[len('project_'):]
+            count = client.get_collection(c.name).count()
+            print(f'{name}|{count}')
+"
+```
+
+- 프로젝트가 없으면 "인덱싱된 프로젝트가 없습니다."라고 안내하고 종료하세요.
+- 프로젝트가 있으면 번호 목록으로 보여주세요:
+
+```
+삭제할 프로젝트를 선택하세요:
+
+  1. tving-android (18,455개 청크)
+  2. tving-ios (13,362개 청크)
+
+번호 또는 프로젝트 이름을 입력하세요:
+```
+
+사용자가 번호 또는 이름으로 선택하면 해당 프로젝트 이름으로 2단계를 진행하세요.
 
 ## 2단계: 삭제 실행
 
