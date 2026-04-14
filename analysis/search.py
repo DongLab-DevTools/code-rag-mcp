@@ -74,36 +74,6 @@ def list_projects() -> list[str]:
 # 검색
 # ─────────────────────────────────────────────
 
-# ─────────────────────────────────────────────
-# 질문 유형별 프롬프트 분기
-# ─────────────────────────────────────────────
-
-def _detect_prompt_name(question: str) -> str:
-    """질문 유형을 감지하여 적절한 프롬프트 이름을 반환한다."""
-    q = question.strip()
-
-    # 코드가 포함된 질문 → code2code
-    code_indicators = [
-        "```", "fun ", "class ", "val ", "var ", "def ", "struct ",
-        "import ", "override ", "private ", "public ", "@",
-        "func ", "let ", "protocol ", "extension ",
-    ]
-    if any(indicator in q for indicator in code_indicators):
-        return "code2code_query"
-
-    # 에러/트러블슈팅 질문 → techqa
-    techqa_keywords = [
-        "에러", "오류", "크래시", "crash", "exception", "error",
-        "안 돼", "안돼", "실패", "fail", "bug", "버그",
-        "해결", "fix", "원인", "why", "왜",
-    ]
-    if any(kw in q.lower() for kw in techqa_keywords):
-        return "techqa_query"
-
-    # 기본 → 자연어로 코드 검색
-    return "nl2code_query"
-
-
 def search_code(question: str, top_k: int = TOP_K, project: str = "") -> list[dict]:
     """
     질문과 관련된 코드를 검색한다.
@@ -113,9 +83,8 @@ def search_code(question: str, top_k: int = TOP_K, project: str = "") -> list[di
         top_k: 반환할 결과 수
         project: 프로젝트 이름 (빈 문자열이면 전체 검색)
     """
-    prompt_name = _detect_prompt_name(question)
     question_vector = embed_model.encode(
-        question, prompt_name=prompt_name,
+        question, prompt_name="nl2code_query",
     ).tolist()
 
     chroma_client = chromadb.PersistentClient(path=CHROMA_DB_PATH)

@@ -12,7 +12,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastmcp import FastMCP
-from analysis.search import search_code, format_results, list_projects
+from analysis.search import search_code as _search_code, format_results, list_projects
 
 # ─────────────────────────────────────────────
 # MCP 서버 생성
@@ -53,7 +53,7 @@ def search_code(query: str, top_k: int = 10, project: str = "") -> str:
         검색된 코드 조각들 (프로젝트명, 파일 경로, 이름, 줄 번호, 코드 포함)
     """
     top_k = min(top_k, 20)
-    results = search_code(query, top_k=top_k, project=project)
+    results = _search_code(query, top_k=top_k, project=project)
     return format_results(results)
 
 
