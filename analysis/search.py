@@ -42,15 +42,22 @@ def get_device() -> str:
         return "cpu"
 
 
-device = get_device()
+_embed_model = None
 
-print(f"검색 모델 로드 중: {EMBEDDING_MODEL_NAME} ({device})", file=sys.stderr)
-embed_model = SentenceTransformer(
-    EMBEDDING_MODEL_NAME,
-    model_kwargs={"torch_dtype": torch.float32},
-    device=device,
-)
-print("  → 모델 로드 완료!\n", file=sys.stderr)
+
+def _get_embed_model() -> SentenceTransformer:
+    """첫 호출 시 모델을 로드한다 (lazy-load)."""
+    global _embed_model
+    if _embed_model is None:
+        device = get_device()
+        print(f"검색 모델 로드 중: {EMBEDDING_MODEL_NAME} ({device})", file=sys.stderr)
+        _embed_model = SentenceTransformer(
+            EMBEDDING_MODEL_NAME,
+            model_kwargs={"torch_dtype": torch.float32},
+            device=device,
+        )
+        print("  → 모델 로드 완료!\n", file=sys.stderr)
+    return _embed_model
 
 
 # ─────────────────────────────────────────────
@@ -83,7 +90,7 @@ def search_code(question: str, top_k: int = TOP_K, project: str = "") -> list[di
         top_k: 반환할 결과 수
         project: 프로젝트 이름 (빈 문자열이면 전체 검색)
     """
-    question_vector = embed_model.encode(
+    question_vector = _get_embed_model().encode(
         question, prompt_name="nl2code_query",
     ).tolist()
 
