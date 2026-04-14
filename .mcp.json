@@ -2,7 +2,7 @@
   "mcpServers": {
     "code-rag-mcp": {
       "type": "stdio",
-      "command": "${CLAUDE_PLUGIN_DATA}/venv/bin/python",
+      "command": "${CLAUDE_PLUGIN_ROOT}/venv/bin/python",
       "args": ["${CLAUDE_PLUGIN_ROOT}/server/mcp_server.py"],
       "env": {}
     }
