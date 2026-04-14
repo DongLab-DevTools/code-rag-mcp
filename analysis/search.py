@@ -11,6 +11,7 @@ search.py — 벡터DB에서 질문과 관련된 코드를 검색한다.
 
 import os
 import re
+import sys
 import torch
 from sentence_transformers import SentenceTransformer
 import chromadb
@@ -43,13 +44,13 @@ def get_device() -> str:
 
 device = get_device()
 
-print(f"검색 모델 로드 중: {EMBEDDING_MODEL_NAME} ({device})")
+print(f"검색 모델 로드 중: {EMBEDDING_MODEL_NAME} ({device})", file=sys.stderr)
 embed_model = SentenceTransformer(
     EMBEDDING_MODEL_NAME,
     model_kwargs={"torch_dtype": torch.float32},
     device=device,
 )
-print("  → 모델 로드 완료!\n")
+print("  → 모델 로드 완료!\n", file=sys.stderr)
 
 
 # ─────────────────────────────────────────────
