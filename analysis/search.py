@@ -10,11 +10,7 @@ search.py — 벡터DB에서 질문과 관련된 코드를 검색한다.
 """
 
 import os
-import re
 import sys
-import torch
-from sentence_transformers import SentenceTransformer
-import chromadb
 
 # ─────────────────────────────────────────────
 # 설정
@@ -30,26 +26,26 @@ TOP_K = 10
 
 
 # ─────────────────────────────────────────────
-# 디바이스 & 모델
+# 디바이스 & 모델 (lazy-load)
 # ─────────────────────────────────────────────
-
-def get_device() -> str:
-    if torch.backends.mps.is_available():
-        return "mps"
-    elif torch.cuda.is_available():
-        return "cuda"
-    else:
-        return "cpu"
-
 
 _embed_model = None
 
 
-def _get_embed_model() -> SentenceTransformer:
+def _get_embed_model():
     """첫 호출 시 모델을 로드한다 (lazy-load)."""
     global _embed_model
     if _embed_model is None:
-        device = get_device()
+        import torch
+        from sentence_transformers import SentenceTransformer
+
+        if torch.backends.mps.is_available():
+            device = "mps"
+        elif torch.cuda.is_available():
+            device = "cuda"
+        else:
+            device = "cpu"
+
         print(f"검색 모델 로드 중: {EMBEDDING_MODEL_NAME} ({device})", file=sys.stderr)
         _embed_model = SentenceTransformer(
             EMBEDDING_MODEL_NAME,
@@ -68,6 +64,7 @@ def list_projects() -> list[str]:
     """인덱싱된 프로젝트 이름 목록을 반환한다."""
     if not os.path.exists(CHROMA_DB_PATH):
         return []
+    import chromadb
     chroma_client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
     collections = chroma_client.list_collections()
     return [
@@ -94,6 +91,7 @@ def search_code(question: str, top_k: int = TOP_K, project: str = "") -> list[di
         question, prompt_name="nl2code_query",
     ).tolist()
 
+    import chromadb
     chroma_client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
 
     # 검색할 컬렉션 결정
