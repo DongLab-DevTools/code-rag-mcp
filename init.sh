@@ -92,6 +92,20 @@ fi
 # - 최초 1회: HuggingFace에서 ~3GB 다운로드 → ~/.cache/huggingface/
 # - 이후: 캐시 hit으로 즉시 종료 (모델을 메모리에 보관하진 않음)
 # ─────────────────────────────────────────────
+# ─────────────────────────────────────────────
+# chroma_db 마이그레이션 (캐시 → 영구 저장소)
+# 이전 버전에서 캐시 디렉토리에 저장된 chroma_db를
+# ~/.code-rag-mcp/chroma_db로 이관한다.
+# ─────────────────────────────────────────────
+PERSISTENT_DATA="$HOME/.code-rag-mcp"
+mkdir -p "$PERSISTENT_DATA"
+
+if [ -d "$DIR/chroma_db" ] && [ ! -d "$PERSISTENT_DATA/chroma_db" ]; then
+    echo "기존 인덱스 데이터를 영구 저장소로 이관합니다..."
+    mv "$DIR/chroma_db" "$PERSISTENT_DATA/chroma_db"
+    echo "  → $PERSISTENT_DATA/chroma_db 로 이관 완료"
+fi
+
 MODEL_MARKER="$DATA_DIR/venv/.model_warmed"
 if [ ! -f "$MODEL_MARKER" ]; then
     echo "임베딩 모델 가중치를 다운로드합니다 (최초 1회, 수 분 소요)..."

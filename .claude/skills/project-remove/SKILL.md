@@ -20,7 +20,7 @@ description: 인덱싱된 프로젝트를 삭제합니다
 ```
 {플러그인루트}/venv/bin/python -c "
 import chromadb, os
-db_path = os.path.join(os.environ.get('CLAUDE_PLUGIN_DATA') or '{플러그인루트}', 'chroma_db')
+db_path = os.path.join(os.environ.get('CODE_RAG_DATA') or os.path.expanduser('~/.code-rag-mcp'), 'chroma_db')
 if not os.path.exists(db_path):
     print('EMPTY')
 else:
@@ -59,7 +59,7 @@ else:
 ```
 {플러그인루트}/venv/bin/python -c "
 import chromadb, os, sys
-db_path = os.path.join(os.environ.get('CLAUDE_PLUGIN_DATA') or '{플러그인루트}', 'chroma_db')
+db_path = os.path.join(os.environ.get('CODE_RAG_DATA') or os.path.expanduser('~/.code-rag-mcp'), 'chroma_db')
 client = chromadb.PersistentClient(path=db_path)
 name = 'project_{프로젝트이름}'
 try:

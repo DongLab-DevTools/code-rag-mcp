@@ -18,7 +18,7 @@ import sys
 
 EMBEDDING_MODEL_NAME = "jinaai/jina-code-embeddings-1.5b"
 CHROMA_DB_PATH = os.path.join(
-    os.environ.get("CLAUDE_PLUGIN_DATA") or os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    os.environ.get("CODE_RAG_DATA") or os.path.expanduser("~/.code-rag-mcp"),
     "chroma_db",
 )
 COLLECTION_PREFIX = "project_"
